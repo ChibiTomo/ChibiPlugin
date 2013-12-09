@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
@@ -23,6 +24,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.chibitomo.interfaces.IEventHandler;
 
 public class EventListener implements Listener {
@@ -55,6 +57,21 @@ public class EventListener implements Listener {
 		} catch (Exception e) {
 			plugin.error(e);
 		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onEntityRegainHealthEvent(EntityRegainHealthEvent event) {
+		send(event);
+	}
+
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onPlayerQuitEvent(PlayerQuitEvent event) {
+		send(event);
+	}
+
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onPlayerJoinEvent(PlayerJoinEvent event) {
+		send(event);
 	}
 
 	@EventHandler(priority = EventPriority.HIGH)

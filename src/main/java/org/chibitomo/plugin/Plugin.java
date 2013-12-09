@@ -1,5 +1,6 @@
 package org.chibitomo.plugin;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -22,6 +23,7 @@ public abstract class Plugin extends JavaPlugin implements IPlugin {
 	protected Server server;
 	protected Logger logger;
 	protected Map<Class<? extends Event>, TreeMap<Integer, IEventHandler>> eventHandlers = new HashMap<Class<? extends Event>, TreeMap<Integer, IEventHandler>>();
+	protected boolean debugOn = true;
 
 	/**
 	 * Call when plugin is initialized. Should set {@link NAME} and
@@ -54,7 +56,7 @@ public abstract class Plugin extends JavaPlugin implements IPlugin {
 
 	private void beforeInit() throws Exception {
 		logger = new Logger(getLogger());
-		info("Starting a ChibiPlugin");
+		debug("Starting a ChibiPlugin");
 
 		saveDefaultConfig();
 		reloadConfig();
@@ -142,6 +144,18 @@ public abstract class Plugin extends JavaPlugin implements IPlugin {
 		}
 	}
 
+	public void debug(String msg) {
+		if (!debugOn) {
+			return;
+		}
+		Exception e = new Exception();
+		StackTraceElement trace = e.getStackTrace()[1];
+		String file = trace.getFileName();
+		int line = trace.getLineNumber();
+		String method = trace.getMethodName();
+		logger.info("[" + file + ", " + method + "():" + line + "]" + msg);
+	}
+
 	public void info(String msg) {
 		logger.info(msg);
 	}
@@ -150,7 +164,32 @@ public abstract class Plugin extends JavaPlugin implements IPlugin {
 		logger.error(e);
 	}
 
+	public void error(InvocationTargetException e) {
+		Throwable cause = e.getCause();
+
+		String message = "Unknown cause.";
+		if (cause != null) {
+			message = cause.getMessage();
+			e.setStackTrace(cause.getStackTrace());
+		}
+		if (message == null) {
+			message = cause.getClass().getSimpleName();
+		}
+
+		error(e, message);
+	}
+
+	public void error(Exception e, String msg) {
+		Exception exception = new Exception(msg);
+		exception.setStackTrace(e.getStackTrace());
+		error(exception);
+	}
+
 	public Player getPlayer(String name) {
 		return getServer().getPlayerExact(name);
+	}
+
+	public boolean debugIsOn() {
+		return debugOn;
 	}
 }

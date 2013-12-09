@@ -5,6 +5,8 @@ import org.bukkit.Server;
 public interface IPlugin {
 	public void info(String msg);
 
+	public void debug(String msg);
+
 	public void onEnable();
 
 	public void registerEvents();

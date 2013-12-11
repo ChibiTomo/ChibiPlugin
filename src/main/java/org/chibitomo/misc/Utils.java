@@ -149,20 +149,42 @@ public class Utils {
 	}
 
 	public static void delay(Plugin plugin, final Object obj, String methodName) {
-		delay(plugin, obj, methodName, 10);
+		delay(plugin, obj, methodName, 0);
 	}
 
 	public static void delay(final Plugin plugin, final Object obj,
 			String methodName, int delay) {
+		delay(plugin, obj, methodName, new Object[] {}, delay);
+	}
+
+	public static void delay(final Plugin plugin, final Object obj,
+			String methodName, Object arg, int delay) {
+		delay(plugin, obj, methodName, new Object[] { arg }, delay);
+	}
+
+	public static void delay(final Plugin plugin, final Object obj,
+			final String methodName, final Object[] args, int delay) {
 		final Method method;
 		try {
-			method = obj.getClass().getDeclaredMethod(methodName);
+			plugin.debug("Preparing delayed task: " + methodName);
+			List<Class<?>> argsClassList = new ArrayList<Class<?>>();
+			for (Object o : args) {
+				argsClassList.add(o.getClass());
+			}
+
+			@SuppressWarnings("rawtypes")
+			final Class[] argsTypes = new Class[argsClassList.size()];
+			argsClassList.toArray(argsTypes);
+			method = obj.getClass().getDeclaredMethod(methodName, argsTypes);
+
 			plugin.getServer().getScheduler()
 					.runTaskLater(plugin, new Runnable() {
 						@Override
 						public void run() {
 							try {
-								method.invoke(obj);
+								plugin.debug("Run delayed task: " + methodName);
+								method.setAccessible(true);
+								method.invoke(obj, args);
 							} catch (IllegalAccessException e) {
 								plugin.error(e);
 							} catch (IllegalArgumentException e) {
@@ -182,17 +204,38 @@ public class Utils {
 		time(plugin, obj, str, 0, 20);
 	}
 
+	public static BukkitTask time(Plugin plugin, Object obj, String methodName,
+			int delay, int period) {
+		return time(plugin, obj, methodName, new Object[] {}, delay, period);
+	}
+
+	public static BukkitTask time(Plugin plugin, Object obj, String methodName,
+			Object arg, int delay, int period) {
+		return time(plugin, obj, methodName, new Object[] { arg }, delay,
+				period);
+	}
+
 	public static BukkitTask time(final Plugin plugin, final Object obj,
-			String methodName, int delay, int period) {
+			String methodName, final Object[] args, int delay, int period) {
 		final Method method;
 		try {
-			method = obj.getClass().getDeclaredMethod(methodName);
+			List<Class<?>> argsClassList = new ArrayList<Class<?>>();
+			for (Object o : args) {
+				argsClassList.add(o.getClass());
+			}
+
+			@SuppressWarnings("rawtypes")
+			final Class[] argsTypes = new Class[argsClassList.size()];
+			argsClassList.toArray(argsTypes);
+			method = obj.getClass().getDeclaredMethod(methodName, argsTypes);
+
 			return plugin.getServer().getScheduler()
 					.runTaskTimer(plugin, new Runnable() {
 						@Override
 						public void run() {
 							try {
-								method.invoke(obj);
+								method.setAccessible(true);
+								method.invoke(obj, args);
 							} catch (IllegalAccessException e) {
 								plugin.error(e);
 							} catch (IllegalArgumentException e) {
@@ -218,6 +261,11 @@ public class Utils {
 
 	public static boolean isSomethingBeetween(LivingEntity entity,
 			LivingEntity otherEntity) {
+		return isSomethingBeetween(entity, otherEntity, new ArrayList<String>());
+	}
+
+	public static boolean isSomethingBeetween(LivingEntity entity,
+			LivingEntity otherEntity, List<String> transpBlock) {
 		Location loc = entity.getEyeLocation();
 		Location otherLoc = otherEntity.getEyeLocation();
 		Vector direction = getVector(loc, otherLoc);
@@ -228,7 +276,6 @@ public class Utils {
 				.getLocation().toVector(), direction, y, toSlendermanDist);
 
 		// TODO: Configurable transparent blocks.
-		List<String> transpBlock = new ArrayList<String>();
 		transpBlock.add("AIR");
 
 		boolean somethingBetween = false;
